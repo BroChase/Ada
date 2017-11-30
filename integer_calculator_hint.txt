@@ -1,0 +1,114 @@
+with Ada.Text_IO, Ada.Integer_Text_IO, Unbound_Stack;
+use Ada.Text_IO, Ada.Integer_Text_IO;
+
+-- procedure Integer_Calculator
+procedure Integer_Calculator is
+
+	package Unbound_Character_Stack is new Unbound_Stack(Character);
+	package Unbound_Integer_Stack is new Unbound_Stack(Integer);
+	use Unbound_Character_Stack, Unbound_Integer_Stack;
+	
+	Buffer : String(1..1000);
+	Last : Natural;
+	
+	Index : Integer := 1;
+	Result : Integer;
+	
+	Expect_Operand : Boolean := true;
+	Expression_Error : exception;
+	
+	-- function Evaluate return Integer
+	-- Evaluates the integer expression in Buffer and returns the result. An
+	-- Expression_Error is raised if the expression has an error;
+    function Evaluate return Integer is
+	    Operator_Stack : Unbound_Character_Stack.Stack;
+	    Operand_Stack : Unbound_Integer_Stack.Stack;
+		Result : Integer;
+		
+		-- function Precedence(Operator : Character) return Integer
+		-- Returns the precedence of Operator. Raises Exception_Error if
+		-- Operator is not a known operator.
+		--     '+' | '-' => 0
+		--     '*' | '/' => 1
+		function Precedence(Operator : Character) return Integer is
+		begin
+		    ...
+		end Precedence;
+		
+		-- procedure Apply
+		-- Applies the top operator on the Operator_Stack to its right and left
+		-- operands on the Operand Stack.
+		procedure Apply is
+		    Operator : Character;
+			Left, Right : Integer;
+		begin -- Apply
+		    ...
+		end Apply;
+		
+    begin -- Evaluate
+	    -- Process the expression left to right once character at a time.
+	    while Index <= Last loop
+		    case Buffer(Index) is
+			    when '0'..'9' =>
+				    -- The character starts an operand. Extract it and push it
+					-- on the Operand Stack.
+			        if not Expect_Operand then
+				        raise Expression_Error;
+				    end if;
+			        declare
+			            Value : Integer := 0;
+				    begin
+				        while Index <= Last and then
+						      Buffer(Index) in '0'..'9' loop
+					        Value := Value*10+(Character'Pos(Buffer(Index))-Character'Pos('0'));
+						    Index := Index+1;
+					    end loop;
+					    Push(Value, Operand_Stack);
+					    Expect_Operand := false;
+				    end;
+			    when '+' | '-' | '*' | '/' =>
+				    -- The character is an operator. Apply any pending operators
+					-- (on the Operator_Stack) whose precedence is greater than
+					-- or equal to this operator. Then, push the operator on the
+					-- Operator_Stack.
+			        ...
+			    when ' ' =>
+				    -- The character is a space. Ignore it.
+				    Index := Index + 1;
+			    when others =>
+				    -- The character is something unexpected. Raise
+					-- Expression_Error.
+				    raise Expression_Error;
+			end case;
+		end loop;
+		-- We are at the end of the expression. Apply all of the pending
+		-- operators. The operand stack must have exactly one value, which is
+		-- returned.
+		...
+		return Result;
+	exception
+		when Unbound_Character_Stack.Underflow |
+		     Unbound_Integer_Stack.Underflow =>
+		    raise Expression_Error;
+	end Evaluate;
+	
+begin -- Calculator
+    -- Process all of the expression in standard input.
+    while not End_of_File loop
+	    -- Read the next expression, evaluate it, and print the result.
+	    begin
+	        Get_Line(Buffer, Last);
+			Put_Line(Buffer(1..Last));
+		    Index := 1;
+			Expect_Operand := True;
+            Result := Evaluate;
+	        Put(Result);
+		    New_Line;
+		exception
+		    when Expression_Error =>
+			    Put_Line("EXPRESSION ERROR");
+			when others =>
+			    Put_Line("ERROR");
+		end;
+	end loop;
+end Integer_Calculator;
